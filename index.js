@@ -4,6 +4,7 @@ const titles = document.getElementById("titles");
 const list = document.getElementById("list");
 const bullet = document.getElementById("bullet");
 const exitBlock = document.getElementById("exit");
+const dataButton = document.getElementById("dataButton");
 
 editor.oninput = (e) => {
   e.preventDefault();
@@ -53,6 +54,67 @@ fileBtn.onchange = (e) => {
 list.onclick = (e) => {
   document.execCommand("insertOrderedList");
 };
+bullet.onclick = (e) => {
+  document.execCommand("insertUnorderedList");
+};
 exitBlock.onclick = (e) => {
   document.execCommand("outdent");
 };
+
+dataButton.onclick = () => {
+  const data = dataExtractor(editor);
+  console.log(data);
+};
+
+function dataExtractor(element) {
+  let data = {};
+  // let i = 0;
+  extractor(element);
+  function extractor(elements) {
+    let childElements = elements.childNodes;
+    for (let i = 0; i < childElements.length; i++) {
+      const element = childElements[i];
+      if (element.nodeType === 1) {
+        if (
+          element.nodeName !== "OL" &&
+          element.nodeName !== "UL" &&
+          element.nodeName !== "IMG"
+        ) {
+          if (
+            element.childNodes.length === 1 &&
+            element.innerText.trim() !== ""
+          ) {
+            // console.log(element);
+            data[`${i}tag${Math.random()} + ${element.nodeName}`] =
+              element.innerText;
+          } else {
+            // console.dir(element);
+            extractor(element);
+          }
+        } else {
+          if (element.nodeName !== "IMG") {
+            let listData = {};
+            const listElements = element.childNodes;
+            for (let listPos = 0; listPos < listElements.length; listPos++) {
+              const element = listElements[listPos];
+              if (element.nodeName === "LI") {
+                listData[
+                  `${listPos}tag${Math.random()} + ${element.nodeName}`
+                ] = element.innerText;
+              }
+            }
+            data[`${i}tag${Math.random()} + ${element.nodeName}`] = {
+              ...listData,
+            };
+          }
+        }
+      } else {
+        if (element.data.trim() !== "") {
+          data[`${i}tag${Math.random()} + p`] = element.data.trim();
+        }
+      }
+      // console.dir(element);
+    }
+  }
+  return data;
+}
